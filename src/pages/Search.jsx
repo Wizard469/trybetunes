@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
+import AlbumList from '../components/AlbumList';
 import Header from '../components/Header';
+import Loading from '../components/Loading';
+import searchAlbumsAPI from '../services/searchAlbumsAPI';
 
 class Search extends Component {
   constructor() {
@@ -7,6 +10,9 @@ class Search extends Component {
     this.state = {
       inputSearch: '',
       isButtonDisabled: true,
+      loading: false,
+      artistOrAlbum: '',
+      searchResult: [],
     };
   }
 
@@ -26,12 +32,26 @@ class Search extends Component {
     }
   };
 
+  onHandleClick = () => {
+    const { inputSearch } = this.state;
+    this.setState({
+      inputSearch: '',
+      isButtonDisabled: true,
+      loading: true,
+      artistOrAlbum: inputSearch,
+    }, async () => {
+      this.setState({ searchResult: await searchAlbumsAPI(inputSearch), loading: false });
+    });
+  };
+
   render() {
-    const { inputSearch, isButtonDisabled } = this.state;
+    const {
+      inputSearch, isButtonDisabled, loading, artistOrAlbum, searchResult,
+    } = this.state;
     return (
       <div data-testid="page-search">
         <Header />
-        <form action="">
+        <form>
           <label htmlFor="name">
             Banda ou Artista
             <input
@@ -46,10 +66,18 @@ class Search extends Component {
             type="button"
             data-testid="search-artist-button"
             disabled={ isButtonDisabled }
+            onClick={ () => this.onHandleClick() }
           >
             Pesquisar
           </button>
         </form>
+        { loading ? (<Loading />) : (artistOrAlbum && (
+          <div>
+            { `Resultado de álbuns de: ${artistOrAlbum}` }
+            <AlbumList searchResult={ searchResult } />
+          </div>
+        )
+        ) }
       </div>
     );
   }
