@@ -1,15 +1,70 @@
 import React, { Component } from 'react';
+import { shape, string } from 'prop-types';
 import Header from '../components/Header';
+import Loading from '../components/Loading';
+import MusicCard from '../components/MusicCard';
+import getMusics from '../services/musicsAPI';
 
 class Album extends Component {
+  constructor() {
+    super();
+    this.state = {
+      artistName: '',
+      collectionName: '',
+      loading: false,
+      albumResult: [],
+    };
+  }
+
+  componentDidMount() {
+    this.fetchMusics();
+  }
+
+  fetchMusics = () => {
+    const { match: { params: { id } } } = this.props;
+    this.setState({ loading: true }, async () => {
+      const albumResult = await getMusics(id);
+      const { artistName, collectionName } = albumResult[0];
+      this.setState({
+        artistName,
+        collectionName,
+        albumResult,
+        loading: false,
+      });
+    });
+  }
+
   render() {
+    const { artistName, collectionName, loading, albumResult } = this.state;
     return (
       <div data-testid="page-album">
         <Header />
-        Album
+        { loading ? (<Loading />) : (
+          <div>
+            <p data-testid="artist-name">{ artistName }</p>
+            <p data-testid="album-name">{ collectionName }</p>
+            { albumResult
+              .filter(({ kind }) => kind === 'song')
+              .map(({ trackName, previewUrl }) => (
+                <MusicCard
+                  key={ trackName + previewUrl }
+                  trackName={ trackName }
+                  previewUrl={ previewUrl }
+                />
+              )) }
+          </div>
+        )}
       </div>
     );
   }
 }
+
+Album.propTypes = {
+  match: shape({
+    params: shape({
+      id: string,
+    }),
+  }),
+}.isRequired;
 
 export default Album;
