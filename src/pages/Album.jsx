@@ -45,9 +45,10 @@ class Album extends Component {
             <p data-testid="album-name">{ collectionName }</p>
             { albumResult
               .filter(({ kind }) => kind === 'song')
-              .map(({ trackName, previewUrl }) => (
+              .map(({ trackName, previewUrl, trackId }) => (
                 <MusicCard
                   key={ trackName + previewUrl }
+                  trackId={ trackId }
                   trackName={ trackName }
                   previewUrl={ previewUrl }
                 />
