@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Loading from '../components/Loading';
 import MusicCard from '../components/MusicCard';
 import getMusics from '../services/musicsAPI';
+import { getFavoriteSongs } from '../services/favoriteSongsAPI';
 
 class Album extends Component {
   constructor() {
@@ -13,6 +14,7 @@ class Album extends Component {
       collectionName: '',
       loading: false,
       albumResult: [],
+      favoriteSongs: [],
     };
   }
 
@@ -24,18 +26,23 @@ class Album extends Component {
     const { match: { params: { id } } } = this.props;
     this.setState({ loading: true }, async () => {
       const albumResult = await getMusics(id);
+      const favorites = await getFavoriteSongs();
       const { artistName, collectionName } = albumResult[0];
       this.setState({
         artistName,
         collectionName,
         albumResult,
+        favoriteSongs: favorites,
         loading: false,
       });
     });
   }
 
   render() {
-    const { artistName, collectionName, loading, albumResult } = this.state;
+    const {
+      artistName, collectionName, loading, albumResult, favoriteSongs,
+    } = this.state;
+
     return (
       <div data-testid="page-album">
         <Header />
@@ -47,10 +54,11 @@ class Album extends Component {
               .filter(({ kind }) => kind === 'song')
               .map(({ trackName, previewUrl, trackId }) => (
                 <MusicCard
-                  key={ trackName + previewUrl }
+                  key={ trackId }
                   trackId={ trackId }
                   trackName={ trackName }
                   previewUrl={ previewUrl }
+                  favoriteSongs={ favoriteSongs }
                 />
               )) }
           </div>
